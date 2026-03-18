@@ -14,7 +14,7 @@ export default function Home() {
       const res = await fetch(`${API_URL}/health`);
       const data = await res.json();
       setStatus(data.status);
-    } catch (err) {
+    } catch (_err) {
       setStatus("API not reachable");
     } finally {
       setLoading(false);
