@@ -1,6 +1,6 @@
 # Frontend Azure — Microservices App
 
-A microservices-based web application with a **Next.js frontend** and an **Express.js API gateway**, designed for deployment on Azure.
+A microservices-based web application with a **Next.js frontend** and an **Express.js API gateway**, specifically optimized for deployment on Azure.
 
 ---
 
@@ -22,23 +22,19 @@ frontend-azure/
 ├── .gitignore                  # Root-level git ignore rules
 ├── README.md                   # Project documentation (this file)
 │
-├── frontend/                   # Next.js frontend application
+├── frontend/                   # Next.js frontend application (Static Export)
+│   ├── build/                  # Static export output (after build)
 │   ├── app/                    # Next.js App Router directory
 │   │   ├── favicon.ico         # Site favicon
 │   │   ├── globals.css         # Global styles & Tailwind CSS config
 │   │   ├── layout.tsx          # Root layout (fonts, metadata, HTML shell)
 │   │   └── page.tsx            # Home page (API health check UI)
 │   ├── public/                 # Static assets served at root URL
-│   │   ├── file.svg
-│   │   ├── globe.svg
-│   │   ├── next.svg
-│   │   ├── vercel.svg
-│   │   └── window.svg
 │   ├── .env.example            # Environment variable template
 │   ├── .env.local              # Local environment overrides (git-ignored)
 │   ├── .gitignore              # Frontend-specific git ignore
 │   ├── eslint.config.mjs       # ESLint flat config (Next.js + TypeScript)
-│   ├── next.config.ts          # Next.js configuration
+│   ├── next.config.ts          # Next.js configuration (output: 'export')
 │   ├── next-env.d.ts           # Next.js TypeScript declarations
 │   ├── package.json            # Frontend dependencies & scripts
 │   ├── package-lock.json       # Locked dependency versions
@@ -47,7 +43,7 @@ frontend-azure/
 │
 └── gateway/                    # Express.js API gateway service
     ├── server.js               # Gateway entry point (health & root endpoints)
-    ├── Dockerfile              # Docker build config for gateway
+    ├── Dockerfile              # Docker build config for gateway (Non-root user)
     ├── .gitignore              # Gateway-specific git ignore
     ├── package.json            # Gateway dependencies & scripts
     └── package-lock.json       # Locked dependency versions
@@ -66,7 +62,6 @@ frontend-azure/
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
 cd frontend-azure
 ```
 
@@ -78,12 +73,12 @@ npm install
 node server.js
 ```
 
-The gateway starts on **http://localhost:3000** with the following endpoints:
+The gateway starts on **http://localhost:3000** by default (or set `PORT` env var).
 
-| Endpoint  | Method | Description             |
-| --------- | ------ | ----------------------- |
-| `/`       | GET    | Returns gateway status  |
-| `/health` | GET    | Health check (`{ status: "ok" }`) |
+| Endpoint  | Method | Description                                      |
+| --------- | ------ | ------------------------------------------------ |
+| `/`       | GET    | Returns service info and available endpoints     |
+| `/health` | GET    | Health check (`{ status: "ok", timestamp: ... }`) |
 
 ### 3. Setup the Frontend
 
@@ -120,24 +115,24 @@ The frontend runs on **http://localhost:3001** (Next.js auto-selects the next av
 
 ### Frontend (`frontend/`)
 
-| Command         | Description                        |
-| --------------- | ---------------------------------- |
-| `npm run dev`   | Start development server           |
-| `npm run build` | Create production build            |
-| `npm run start` | Start production server            |
-| `npm run lint`  | Run ESLint checks                  |
+| Command         | Description                                          |
+| --------------- | ---------------------------------------------------- |
+| `npm run dev`   | Start development server                             |
+| `npm run build` | Create static production build in `build/` directory |
+| `npm run lint`  | Run ESLint checks                                    |
 
 ### Gateway (`gateway/`)
 
 | Command          | Description                        |
 | ---------------- | ---------------------------------- |
-| `node server.js` | Start the gateway server           |
+| `npm start`      | Start the gateway server           |
+| `npm run dev`    | Start with nodemon (auto-reload)   |
 
 ---
 
 ## Docker (Gateway)
 
-Build and run the gateway in a Docker container:
+Build and run the gateway in a Docker container (using non-root user for security):
 
 ```bash
 cd gateway
@@ -155,22 +150,12 @@ docker run -p 3000:3000 gateway
 | --------------------- | ---------------------------- | ------------------------ |
 | `NEXT_PUBLIC_API_URL`  | Gateway API base URL         | `http://localhost:3000`  |
 
-> **Note:** Copy `.env.example` to `.env.local` for local development. Never commit `.env.local` to version control.
-
----
-
-## How It Works
-
-1. The **Gateway** is a lightweight Express.js server that exposes API endpoints (currently a health check).
-2. The **Frontend** is a Next.js app that communicates with the gateway via the `NEXT_PUBLIC_API_URL` environment variable.
-3. The home page provides a **"Check Backend"** button that calls the gateway's `/health` endpoint and displays the connection status.
-
 ---
 
 ## Deployment
 
-- **Gateway**: Deployable as a Docker container on Azure Container Apps, Azure App Service, or any container platform.
-- **Frontend**: Deployable on Vercel, Azure Static Web Apps, or any Node.js hosting platform.
+- **Gateway**: Deployable as a Docker container on **Azure Container Apps** or **Azure App Service**.
+- **Frontend**: Deployable as an **Azure Static Web App** (SWA). Configuration is set to static export in `next.config.ts`.
 
 ---
 
